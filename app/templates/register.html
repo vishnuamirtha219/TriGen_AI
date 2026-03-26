@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Floating Particles -->
+<div class="particles-container" id="particles"></div>
+
+<div
+    style="display: flex; align-items: center; justify-content: center; min-height: 80vh; position: relative; z-index: 1;">
+    <div class="glass-panel animate-scale-in" style="width: 100%; max-width: 420px; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="margin-bottom: 1rem;">
+                <ion-icon name="person-add-outline" style="font-size: 2.5rem; color: var(--secondary);"></ion-icon>
+            </div>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Create Account</h1>
+            <p style="color: var(--text-muted);">Join TriGen-AI Intelligence</p>
+        </div>
+
+        <form action="{{ url_for('auth.register') }}" method="POST" id="register-form">
+            <div class="form-group">
+                <label class="form-label">Account Type</label>
+                <select name="role" class="form-input" id="role-select" onchange="toggleAdminCode()">
+                    <option value="user">Regular User</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="admin-code-group" style="display: none;">
+                <label class="form-label">Admin Access Code</label>
+                <input type="password" name="admin_code" class="form-input" placeholder="Enter admin access code">
+                <small style="color: var(--text-muted); font-size: 0.75rem;">Required for admin registration</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Choose a username" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="••••••••" required
+                    id="password-input" oninput="updateStrength(this.value)">
+                <div class="password-strength" id="password-strength" style="display: none;">
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strength-fill"></div>
+                    </div>
+                    <span class="strength-text" id="strength-text" style="color: var(--text-muted);">Weak</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="confirm_password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                Sign Up <ion-icon name="person-add-outline"></ion-icon>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem;">
+            <p style="color: var(--text-muted);">Already have an account? <a href="{{ url_for('auth.login') }}"
+                    style="color: var(--primary); font-weight: 500;">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Generate floating particles
+    (function () {
+        const container = document.getElementById('particles');
+        if (!container) return;
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
+            particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            particle.style.animationDelay = (Math.random() * 10) + 's';
+            particle.style.background = `rgba(${Math.random() > 0.5 ? '99, 102, 241' : '16, 185, 129'}, ${Math.random() * 0.3 + 0.1})`;
+            container.appendChild(particle);
+        }
+    })();
+
+    function toggleAdminCode() {
+        const roleSelect = document.getElementById('role-select');
+        const adminCodeGroup = document.getElementById('admin-code-group');
+        adminCodeGroup.style.display = roleSelect.value === 'admin' ? 'block' : 'none';
+    }
+
+    function updateStrength(password) {
+        const strengthDiv = document.getElementById('password-strength');
+        const fill = document.getElementById('strength-fill');
+        const text = document.getElementById('strength-text');
+
+        if (!password) {
+            strengthDiv.style.display = 'none';
+            return;
+        }
+        strengthDiv.style.display = 'block';
+
+        let score = 0;
+        if (password.length >= 6) score++;
+        if (password.length >= 10) score++;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+        const levels = [
+            { width: '20%', color: '#ef4444', label: 'Very Weak' },
+            { width: '40%', color: '#f59e0b', label: 'Weak' },
+            { width: '60%', color: '#f59e0b', label: 'Fair' },
+            { width: '80%', color: '#10b981', label: 'Strong' },
+            { width: '100%', color: '#10b981', label: 'Very Strong' }
+        ];
+
+        const level = levels[Math.min(score, 4)];
+        fill.style.width = level.width;
+        fill.style.background = level.color;
+        text.textContent = level.label;
+        text.style.color = level.color;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <h1 style="margin-bottom: 0.5rem;" class="animate-fade-in-up">LSD Risk Analysis</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;" class="animate-fade-in-up stagger-1">Assessment of Gaucher
+        and Fabry disease risks based on enzymatic activity and organomegaly</p>
+
+    <div class="glass-panel animate-fade-in-up stagger-2" style="padding: 2rem;">
+        <!-- Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
+            <button class="btn" id="tab-manual" onclick="switchTab('manual')"
+                style="border-radius: 0; border-bottom: 2px solid #10b981; color: #10b981;">Manual Entry</button>
+            <button class="btn" id="tab-upload" onclick="switchTab('upload')"
+                style="border-radius: 0; color: var(--text-muted);">File Upload</button>
+        </div>
+
+        <!-- Manual Form -->
+        <div id="manual-section">
+            <form id="lsd-form">
+                <h3
+                    style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Enzymatic Activity (nmol/hr/mg)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                β-Glucosidase
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Low levels suggest Gaucher disease — normal: 5–15
+                                    nmol/hr/mg</span>
+                            </span>
+                        </label>
+                        <input type="number" name="b_glucosidase" id="b_glucosidase" class="form-input"
+                            placeholder="e.g. 5.2" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                α-Galactosidase
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Low levels suggest Fabry disease — normal: 4–22
+                                    nmol/hr/mg</span>
+                            </span>
+                        </label>
+                        <input type="number" name="a_galactosidase" id="a_galactosidase" class="form-input"
+                            placeholder="e.g. 4.8" step="0.1" required>
+                    </div>
+                </div>
+
+                <h3
+                    style="margin: 1.5rem 0 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Organ Morphometry (cm)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Liver Size (Span)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal liver span: 12–15 cm</span>
+                            </span>
+                        </label>
+                        <input type="number" name="liver_size" id="liver_size" class="form-input" placeholder="e.g. 14"
+                            step="0.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Spleen Size (Length)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal spleen length: 7–13 cm</span>
+                            </span>
+                        </label>
+                        <input type="number" name="spleen_size" id="spleen_size" class="form-input"
+                            placeholder="e.g. 10" step="0.5" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 2rem;">
+                    <ion-icon name="calculator-outline"></ion-icon> Calculate Risk
+                </button>
+            </form>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload-section" style="display: none; text-align: center; padding: 2rem;">
+            <div class="upload-zone">
+                <ion-icon name="cloud-upload-outline"
+                    style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></ion-icon>
+                <h3>Upload Lab Report (PDF/CSV)</h3>
+                <p style="color: var(--text-muted);">or click to browse</p>
+                <input type="file" accept=".pdf,.csv" style="display: none;" id="file-upload"
+                    onchange="handleFileUpload(this)">
+                <button class="btn btn-success" onclick="document.getElementById('file-upload').click()"
+                    style="margin-top: 1rem;">Select File</button>
+            </div>
+            <p id="upload-status" style="margin-top: 1rem; color: var(--text-muted);"></p>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="result-panel" class="glass-panel result-glow animate-fade-in-up"
+        style="margin-top: 2rem; padding: 2rem; display: none; border-color: #10b981;">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Risk Assessment</h2>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap;">
+            <!-- Gauge Chart -->
+            <div style="width: 200px; height: 200px; position: relative;">
+                <canvas id="lsdChart"></canvas>
+                <div
+                    style="position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <span id="prob-val" style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">--%</span>
+                    <br>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Probability</span>
+                </div>
+            </div>
+
+            <!-- Text Data -->
+            <div style="text-align: left;">
+                <span style="color: var(--text-muted);">Risk Level</span>
+                <h1 id="risk-val" style="font-size: 3rem; margin: 0.5rem 0; color: #10b981;">--</h1>
+                <div id="immunity-linked-badge" class="badge badge-info"
+                    style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 0.5rem; background: #3b82f6; color: white; border-radius: 4px; align-items: center; gap: 0.5rem;">
+                    <ion-icon name="shield-checkmark-outline"></ion-icon> Linked Immunity: <span id="imm-link-val">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="margin-top: 1.5rem; padding: 1.5rem;">
+            <h4 style="margin-bottom: 0.5rem;"><ion-icon name="medkit-outline"></ion-icon> Recommendation</h4>
+            <p id="rec-val">--</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/lsd.js') }}"></script>
+{% endblock %}

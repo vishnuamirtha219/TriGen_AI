@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <h1 style="margin-bottom: 0.5rem;" class="animate-fade-in-up">Sickle Cell Prediction</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;" class="animate-fade-in-up stagger-1">Genetic and clinical
+        analysis for sickle cell anemia risk</p>
+
+    <div class="glass-panel animate-fade-in-up stagger-2" style="padding: 2rem;">
+        <!-- Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
+            <button class="btn" id="tab-data" onclick="switchTab('data')"
+                style="border-radius: 0; border-bottom: 2px solid var(--accent); color: var(--accent);">Analysis
+                Data</button>
+            <button class="btn" id="tab-upload" onclick="switchTab('upload')"
+                style="border-radius: 0; color: var(--text-muted);">Auto-Fill from File</button>
+        </div>
+
+        <!-- Auto-Fill Section -->
+        <div id="upload-section"
+            style="display: none; text-align: center; padding: 2rem; background: rgba(236, 72, 153, 0.03); border-radius: var(--radius-md); margin-bottom: 2rem;">
+            <ion-icon name="dna-outline" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></ion-icon>
+            <h3>Upload Lab Report or FASTA Sequence</h3>
+            <input type="file" id="file-upload" style="display: none;" onchange="handleFileUpload(this)">
+            <button class="btn btn-primary" onclick="document.getElementById('file-upload').click()"
+                style="margin-top: 1rem; background: var(--accent);">Select File (CSV/FASTA)</button>
+            <p id="upload-status" style="margin-top: 1rem; color: var(--text-muted);"></p>
+        </div>
+
+        <!-- Main Form -->
+        <div id="data-section">
+            <form id="sickle-form">
+                <h3
+                    style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Hemoglobin Analysis</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                HbA (%)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal hemoglobin — typically 95–98%</span>
+                            </span>
+                        </label>
+                        <input type="number" name="hba" id="hba" class="form-input" placeholder="e.g. 96" step="0.1"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                HbS (%)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Sickle hemoglobin — normally 0%</span>
+                            </span>
+                        </label>
+                        <input type="number" name="hbs" id="hbs" class="form-input" placeholder="e.g. 0" step="0.1"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                HbF (%)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Fetal hemoglobin — typically &lt;2% in adults</span>
+                            </span>
+                        </label>
+                        <input type="number" name="hbf" id="hbf" class="form-input" placeholder="e.g. 2" step="0.1">
+                    </div>
+                </div>
+
+                <h3
+                    style="margin: 1.5rem 0 1rem; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Genetic Data (Optional)</h3>
+                <div class="form-group">
+                    <label class="form-label">
+                        <span class="tooltip-wrapper">
+                            HBB Gene Sequence (FASTA format or raw sequence)
+                            <span class="tooltip-icon">?</span>
+                            <span class="tooltip-text">AI will scan for GAG → GTG sickle cell mutation</span>
+                        </span>
+                    </label>
+                    <textarea name="sequence" id="sequence" class="form-input" rows="4"
+                        placeholder=">Seq1&#10;ATGCG..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; margin-top: 2rem; background: var(--accent);">
+                    <ion-icon name="analytics-outline"></ion-icon> Predict Risk
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="result-panel" class="glass-panel result-glow animate-fade-in-up"
+        style="margin-top: 2rem; padding: 2rem; display: none; border-color: var(--accent);">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Genetic Prediction Results</h2>
+
+        <div style="display: flex; gap: 2rem; text-align: center; justify-content: center; flex-wrap: wrap;">
+            <!-- Text Result -->
+            <div style="flex: 1; min-width: 250px;">
+                <span style="color: var(--text-muted);">Prediction</span>
+                <h1 id="pred-val" style="font-size: 3rem; margin: 0.5rem 0; color: var(--accent);">--</h1>
+
+                <div id="mutation-badge" class="badge badge-danger"
+                    style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                    ⚠️ Mutation Detected
+                </div>
+
+                <div id="immunity-linked-badge" class="badge badge-info"
+                    style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 0.5rem; background: var(--info); color: white;">
+                    <ion-icon name="shield-checkmark-outline"></ion-icon> Linked Immunity: <span id="imm-link-val">--</span>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div style="flex: 1; max-width: 300px; height: 200px;">
+                <canvas id="sickleChart"></canvas>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 1.5rem; margin-top: 1.5rem; text-align: left;">
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-main);"><ion-icon
+                    name="document-text-outline"></ion-icon> Clinical Analysis</h4>
+            <p id="note-val" style="color: var(--text-muted); margin-bottom: 1rem;">--</p>
+            <h4 style="margin-bottom: 0.5rem; color: var(--accent);"><ion-icon name="medkit-outline"></ion-icon> AI
+                Recommendations</h4>
+            <div id="rec-val"
+                style="padding: 1rem; background: rgba(236, 72, 153, 0.04); border-left: 4px solid var(--accent); border-radius: 4px;">
+                --
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/sickle_cell.js') }}"></script>
+{% endblock %}

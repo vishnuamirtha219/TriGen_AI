@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+    <h1 style="margin-bottom: 0.5rem;" class="animate-fade-in-up">Immunity Level Assessment</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;" class="animate-fade-in-up stagger-1">Analyze immune system
+        strength based on blood markers</p>
+
+    <div class="glass-panel animate-fade-in-up stagger-2" style="padding: 2rem;">
+        <!-- Tabs -->
+        <div style="display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 2rem;">
+            <button class="btn" id="tab-manual" onclick="switchTab('manual')"
+                style="border-radius: 0; border-bottom: 2px solid var(--primary); color: var(--primary);">Manual
+                Entry</button>
+            <button class="btn" id="tab-upload" onclick="switchTab('upload')"
+                style="border-radius: 0; color: var(--text-muted);">File Upload</button>
+        </div>
+
+        <!-- Manual Form -->
+        <div id="manual-section">
+            <form id="immunity-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                WBC Count (/mcL) <span style="color: var(--danger);">*</span>
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">White Blood Cell count — normal: 4,500–11,000/mcL</span>
+                            </span>
+                        </label>
+                        <input type="number" id="wbc" name="wbc" class="form-input" placeholder="e.g. 10570" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Neutrophils (%) <span style="color: var(--danger);">*</span>
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal range: 40–70% of WBC</span>
+                            </span>
+                        </label>
+                        <input type="number" id="neutrophils" name="neutrophils" class="form-input"
+                            placeholder="e.g. 73" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Lymphocytes (%) <span style="color: var(--danger);">*</span>
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal range: 20–40% of WBC</span>
+                            </span>
+                        </label>
+                        <input type="number" id="lymphocytes" name="lymphocytes" class="form-input"
+                            placeholder="e.g. 19" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Monocytes (%)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal range: 2–8% of WBC</span>
+                            </span>
+                        </label>
+                        <input type="number" id="monocytes" name="monocytes" class="form-input" placeholder="e.g. 6">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Platelet Count (/mcL)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal range: 150,000–400,000/mcL</span>
+                            </span>
+                        </label>
+                        <input type="number" id="platelets" name="platelets" class="form-input"
+                            placeholder="e.g. 250000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Hemoglobin (g/dL)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal: Men 13.5–17.5, Women 12.0–15.5 g/dL</span>
+                            </span>
+                        </label>
+                        <input type="number" step="0.1" id="hemoglobin" name="hemoglobin" class="form-input"
+                            placeholder="e.g. 14.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Patient Age <span style="color: var(--danger);">*</span>
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Age affects immune response reference ranges</span>
+                            </span>
+                        </label>
+                        <input type="number" id="age" name="age" class="form-input" placeholder="e.g. 41" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                IgG (mg/dL)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Immunoglobulin G — normal: 700–1600 mg/dL</span>
+                            </span>
+                        </label>
+                        <input type="number" id="igg" name="igg" class="form-input" placeholder="e.g. 1200">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="tooltip-wrapper">
+                                Eosinophils (%)
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Normal range: 1–4% of WBC</span>
+                            </span>
+                        </label>
+                        <input type="number" id="eosinophils" name="eosinophils" class="form-input" placeholder="e.g. 2">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
+                    <ion-icon name="pulse-outline"></ion-icon> Analyze Immunity
+                </button>
+            </form>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="upload-section" style="display: none; text-align: center; padding: 2rem;">
+            <div class="upload-zone" id="upload-zone">
+                <ion-icon name="cloud-upload-outline"
+                    style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></ion-icon>
+                <h3>Drag & Drop your Blood Report (PDF)</h3>
+                <p style="color: var(--text-muted);">or click to browse</p>
+                <input type="file" accept=".pdf,.csv" style="display: none;" id="file-input">
+                <button class="btn btn-primary" onclick="document.getElementById('file-input').click()"
+                    style="margin-top: 1rem;">Select File</button>
+            </div>
+
+            <!-- File Name Display -->
+            <div id="file-name-display" style="display: none; margin-top: 1rem;">
+                <p
+                    style="color: var(--primary); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <ion-icon name="document-outline"></ion-icon>
+                    <span id="selected-file-name"></span>
+                </p>
+            </div>
+
+            <!-- Status Message -->
+            <p id="upload-status" style="color: var(--text-muted); margin-top: 1rem; min-height: 1.5rem;"></p>
+
+            <!-- Analyze Button -->
+            <button id="analyze-file-btn" class="btn btn-primary"
+                style="display: none; width: 100%; max-width: 400px; margin-top: 1rem;">
+                Analyze File <ion-icon name="pulse-outline"></ion-icon>
+            </button>
+
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem;">Supported formats: PDF, CSV,
+                FNA, FASTA. The AI will auto-extract parameters.</p>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="result-panel" class="glass-panel result-glow animate-fade-in-up"
+        style="margin-top: 2rem; padding: 2rem; display: none; border-color: var(--primary);">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Analysis Results</h2>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap;">
+            <!-- Gauge Chart Container -->
+            <div style="width: 200px; height: 200px; position: relative;">
+                <canvas id="immunityChart"></canvas>
+                <div
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <span id="score-val" style="font-size: 2rem; font-weight: 700;">--</span>
+                    <br>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Score</span>
+                </div>
+            </div>
+
+            <!-- Text Summary -->
+            <div style="flex: 1; min-width: 300px;">
+                <div style="margin-bottom: 1.5rem;">
+                    <span style="color: var(--text-muted);">Immunity Class</span>
+                    <h3 id="class-val" style="font-size: 1.75rem; color: var(--secondary);">--</h3>
+                </div>
+
+                <div class="glass-panel" style="padding: 1rem; margin-bottom: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem;"><ion-icon name="information-circle-outline"></ion-icon>
+                        Explanation</h4>
+                    <p id="explanation-val" style="color: var(--text-main); font-size: 0.9rem;">--</p>
+                </div>
+
+                <div class="glass-panel" style="padding: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem;"><ion-icon name="medkit-outline"></ion-icon> AI Recommendations
+                    </h4>
+                    <p id="rec-val" style="color: var(--text-main);">--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Findings & Risk Indicators -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <!-- Key Findings -->
+            <div class="glass-panel" style="padding: 1.5rem; border-left: 3px solid var(--success);">
+                <h4 style="margin-bottom: 1rem; color: var(--secondary);"><ion-icon
+                        name="checkmark-circle-outline"></ion-icon> Key Findings</h4>
+                <ul id="findings-list" style="list-style: none; padding: 0; margin: 0; color: var(--text-main);">
+                    <li>--</li>
+                </ul>
+            </div>
+
+            <!-- Risk Indicators -->
+            <div class="glass-panel" style="padding: 1.5rem; border-left: 3px solid var(--danger);">
+                <h4 style="margin-bottom: 1rem; color: var(--danger);"><ion-icon name="warning-outline"></ion-icon> Risk
+                    Indicators</h4>
+                <ul id="risks-list" style="list-style: none; padding: 0; margin: 0; color: var(--text-main);">
+                    <li style="color: var(--text-muted);">None detected</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Derived Features -->
+        <div class="glass-panel" style="padding: 1.5rem; margin-top: 2rem; border-left: 3px solid var(--secondary);">
+            <h4 style="margin-bottom: 1rem;"><ion-icon name="analytics-outline"></ion-icon> Derived Immune Markers</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                <div style="text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">ALC (cells/mcL)</p>
+                    <p id="alc-val" style="font-size: 1.25rem; font-weight: 600; color: var(--secondary);">--</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">NLR (Inflammation)
+                    </p>
+                    <p id="nlr-val" style="font-size: 1.25rem; font-weight: 600; color: var(--secondary);">--</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">PLR</p>
+                    <p id="plr-val" style="font-size: 1.25rem; font-weight: 600; color: var(--secondary);">--</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.25rem;">Immune Balance</p>
+                    <p id="balance-val" style="font-size: 1.25rem; font-weight: 600; color: var(--secondary);">--</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/immunity.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const firstInput = document.querySelector('input[name="wbc"]');
+        if (firstInput) firstInput.focus();
+    });
+</script>
+{% endblock %}

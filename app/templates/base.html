@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriGen-AI | Medical Intelligence</title>
+    <meta name="description"
+        content="TriGen-AI: Advanced medical intelligence platform for immunity analysis, sickle cell prediction, and lysosomal storage disorder risk assessment.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Ionic Icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Floating Orbs Background -->
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="glass-panel" style="margin: 1rem; padding: 1rem;">
+            <div class="container nav-container">
+                <div style="display: flex; align-items: center; gap: 2rem;">
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-brand">
+                        <ion-icon name="pulse-outline" style="color: var(--primary); font-size: 1.6rem;"></ion-icon>
+                        <span><span class="nav-brand-text">TriGen</span>-AI</span>
+                    </a>
+
+                    <!-- Global Phase Navigation -->
+                    <div class="nav-links">
+                        <a href="{{ url_for('main.immunity') }}"
+                            class="nav-link {{ 'active' if request.endpoint == 'main.immunity' }}">
+                            Immunity
+                        </a>
+                        <a href="{{ url_for('main.sickle_cell') }}"
+                            class="nav-link {{ 'active' if request.endpoint == 'main.sickle_cell' }}"
+                            style="{{ 'color: var(--accent);' if request.endpoint == 'main.sickle_cell' }}">
+                            Sickle Cell
+                        </a>
+                        <a href="{{ url_for('main.lsd') }}"
+                            class="nav-link {{ 'active' if request.endpoint == 'main.lsd' }}"
+                            style="{{ 'color: #10b981;' if request.endpoint == 'main.lsd' }}">
+                            LSD Risk
+                        </a>
+                        <a href="{{ url_for('main.history') }}"
+                            class="nav-link {{ 'active' if request.endpoint == 'main.history' }}"
+                            style="{{ 'color: #f59e0b;' if request.endpoint == 'main.history' }}">
+                            History
+                        </a>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    {% if session.get('user_role') == 'admin' %}
+                    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline"
+                        style="border-color: var(--primary); color: var(--primary); padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <ion-icon name="shield-outline"></ion-icon> Admin
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline"
+                        style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <ion-icon name="grid-outline"></ion-icon> Dashboard
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn"
+                        style="color: var(--accent); padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        <ion-icon name="log-out-outline"></ion-icon> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="glass-panel animate-fade-in"
+                style="padding: 1rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main Content -->
+        <main class="container animate-fade-in">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="container">
+                <p style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <ion-icon name="pulse-outline" style="color: var(--primary);"></ion-icon>
+                    <span><strong style="color: var(--text-main);">TriGen-AI</strong> &copy; 2026 &mdash; Medical
+                        Intelligence Platform</span>
+                </p>
+                <p style="margin-top: 0.3rem; font-size: 0.7rem; opacity: 0.6;">v2.0 &middot; Powered by Machine
+                    Learning</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay (used by JS) -->
+    <div class="loading-overlay" id="global-loader">
+        <div class="loader loader-lg"></div>
+        <p id="loader-text">Analyzing data...</p>
+    </div>
+
+    <!-- Chatbot Component -->
+    {% if request.endpoint != 'main.index' and request.endpoint != 'auth.login' and request.endpoint != 'auth.register'
+    %}
+    <div class="glass-panel chatbot-window" id="chatbot-window">
+        <div class="chatbot-header">
+            <span>
+                <div class="chatbot-status-dot"></div>
+                TriGen Assistant
+            </span>
+            <ion-icon name="close-outline"
+                style="cursor: pointer; font-size: 1.3rem; opacity: 0.7; transition: opacity 0.2s;"
+                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"
+                onclick="toggleChat()"></ion-icon>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-bubble chat-bubble-bot">
+                👋 Hello! I'm your TriGen AI assistant. I can help you understand your medical analysis results and
+                guide you through data entry.
+                <div class="chat-time">Just now</div>
+            </div>
+        </div>
+
+        <div class="chatbot-input-area">
+            <input type="text" id="chat-input" class="form-input" placeholder="Ask me anything..."
+                style="padding: 0.6rem 1rem; font-size: 0.9rem;">
+            <button class="btn btn-primary" onclick="sendMessage()" style="padding: 0.6rem 1rem; flex-shrink: 0;">
+                <ion-icon name="send"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+    <button class="btn btn-primary chat-fab" onclick="toggleChat()" id="chat-fab">
+        <ion-icon name="chatbubbles-outline" size="large"></ion-icon>
+    </button>
+
+    <script>
+        function toggleChat() {
+            const chat = document.getElementById('chatbot-window');
+            const fab = document.getElementById('chat-fab');
+            chat.classList.toggle('open');
+            // Scroll to bottom when opening
+            if (chat.classList.contains('open')) {
+                const msgs = document.getElementById('chat-messages');
+                msgs.scrollTop = msgs.scrollHeight;
+            }
+        }
+
+        function getTimeString() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function addTypingIndicator() {
+            const messages = document.getElementById('chat-messages');
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.id = 'typing-indicator';
+            typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            messages.appendChild(typing);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typing-indicator');
+            if (el) el.remove();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            const msg = input.value.trim();
+
+            if (!msg) return;
+
+            // Add user message (safe from XSS)
+            const userBubble = document.createElement('div');
+            userBubble.className = 'chat-bubble chat-bubble-user';
+            userBubble.textContent = msg;
+            const userTime = document.createElement('div');
+            userTime.className = 'chat-time';
+            userTime.style.color = 'rgba(255,255,255,0.6)';
+            userTime.textContent = getTimeString();
+            userBubble.appendChild(userTime);
+            messages.appendChild(userBubble);
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+
+            // Show typing indicator
+            addTypingIndicator();
+
+            const context = {
+                page: window.location.pathname,
+                title: document.title,
+                analysis: window.currentAnalysisResult || null
+            };
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, context: context })
+                });
+                const data = await response.json();
+
+                removeTypingIndicator();
+
+                // Add bot response with simple markdown rendering
+                let responseHtml = data.response
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+
+                messages.innerHTML += `
+                    <div class="chat-bubble chat-bubble-bot">
+                        ${responseHtml}
+                        <div class="chat-time">${getTimeString()}</div>
+                    </div>
+                `;
+                messages.scrollTop = messages.scrollHeight;
+            } catch (e) {
+                removeTypingIndicator();
+                messages.innerHTML += `
+                    <div class="chat-bubble chat-bubble-bot" style="border-left: 3px solid var(--danger);">
+                        Sorry, I encountered an error. Please try again.
+                        <div class="chat-time">${getTimeString()}</div>
+                    </div>
+                `;
+                messages.scrollTop = messages.scrollHeight;
+                console.error(e);
+            }
+        }
+
+        // Enter key support
+        document.getElementById('chat-input')?.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Global loader helper
+        window.showLoader = function (text) {
+            const loader = document.getElementById('global-loader');
+            if (text) document.getElementById('loader-text').textContent = text;
+            loader.classList.add('active');
+        };
+        window.hideLoader = function () {
+            document.getElementById('global-loader').classList.remove('active');
+        };
+    </script>
+    {% endif %}
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

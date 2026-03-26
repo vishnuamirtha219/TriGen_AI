@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 2rem 0;">
+    <!-- Greeting Banner -->
+    <div class="animate-fade-in-up">
+        <h1 class="greeting-banner">
+            <span class="greeting-wave">👋</span>
+            <span id="greeting-text">Hello</span>, <span style="color: var(--primary);">{{ session.get('username', 'User') }}</span>
+        </h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Select an analysis module to begin patient assessment
+        </p>
+    </div>
+
+    <!-- Progress Stepper -->
+    <div class="glass-panel animate-fade-in-up stagger-1" style="padding: 1.5rem 2rem; margin-bottom: 2.5rem;">
+        <p
+            style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; font-weight: 600;">
+            Analysis Progress
+        </p>
+        <div class="progress-stepper">
+            <div
+                class="step {{ 'active' if user.current_stage == 'IMMUNITY' else ('completed' if user.current_stage in ['SICKLE_CELL', 'LSD', 'COMPLETED'] else '') }}">
+                <div class="step-circle">
+                    {% if user.current_stage in ['SICKLE_CELL', 'LSD', 'COMPLETED'] %}
+                    <ion-icon name="checkmark"></ion-icon>
+                    {% else %}1{% endif %}
+                </div>
+                <span class="step-label">Immunity</span>
+            </div>
+            <div class="step-connector {{ 'completed' if user.current_stage in ['SICKLE_CELL', 'LSD', 'COMPLETED'] }}">
+            </div>
+            <div
+                class="step {{ 'active' if user.current_stage == 'SICKLE_CELL' else ('completed' if user.current_stage in ['LSD', 'COMPLETED'] else '') }}">
+                <div class="step-circle">
+                    {% if user.current_stage in ['LSD', 'COMPLETED'] %}
+                    <ion-icon name="checkmark"></ion-icon>
+                    {% else %}2{% endif %}
+                </div>
+                <span class="step-label">Sickle Cell</span>
+            </div>
+            <div class="step-connector {{ 'completed' if user.current_stage in ['LSD', 'COMPLETED'] }}"></div>
+            <div
+                class="step {{ 'active' if user.current_stage == 'LSD' else ('completed' if user.current_stage == 'COMPLETED' else '') }}">
+                <div class="step-circle">
+                    {% if user.current_stage == 'COMPLETED' %}
+                    <ion-icon name="checkmark"></ion-icon>
+                    {% else %}3{% endif %}
+                </div>
+                <span class="step-label">LSD Risk</span>
+            </div>
+            <div class="step-connector {{ 'completed' if user.current_stage == 'COMPLETED' }}"></div>
+            <div class="step {{ 'completed' if user.current_stage == 'COMPLETED' }}">
+                <div class="step-circle">
+                    {% if user.current_stage == 'COMPLETED' %}
+                    <ion-icon name="checkmark"></ion-icon>
+                    {% else %}✓{% endif %}
+                </div>
+                <span class="step-label">Complete</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- Card 1: Immunity -->
+        <div class="glass-panel hover-lift animate-scale-in stagger-2"
+            style="padding: 2rem; position: relative; border-color: {{ 'var(--primary)' if user.current_stage == 'IMMUNITY' else 'var(--glass-border)' }};">
+            {% if user.current_stage != 'IMMUNITY' and user.current_stage != 'SICKLE_CELL' and user.current_stage !=
+            'LSD' and user.current_stage != 'COMPLETED' %}
+            <div style="position: absolute; top: 1rem; right: 1rem;">
+                <span class="badge badge-success"><ion-icon name="checkmark-circle"></ion-icon> Done</span>
+            </div>
+            {% elif user.current_stage == 'IMMUNITY' %}
+            <div style="position: absolute; top: 1rem; right: 1rem;">
+                <span class="badge badge-primary animate-pulse">Current</span>
+            </div>
+            {% endif %}
+            <div
+                style="width: 50px; height: 50px; background: rgba(79, 70, 229, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <ion-icon name="shield-checkmark-outline" style="font-size: 24px; color: var(--primary);"></ion-icon>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem;">Immunity Analysis</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Detailed assessment of immune
+                system strength based on blood markers and history.</p>
+            <a href="{{ url_for('main.immunity') }}"
+                class="btn {{ 'btn-primary' if user.current_stage == 'IMMUNITY' else 'btn-outline' }}"
+                style="width: 100%;">
+                {{ 'Completed ✓' if user.current_stage != 'IMMUNITY' else 'Start Analysis →' }}
+            </a>
+        </div>
+
+        <!-- Card 2: Sickle Cell -->
+        <div class="glass-panel hover-3d animate-scale-in stagger-3"
+            style="padding: 2rem; position: relative; opacity: {{ 1 if user.current_stage != 'IMMUNITY' else 0.5 }}; border-color: {{ 'var(--accent)' if user.current_stage == 'SICKLE_CELL' else 'var(--glass-border)' }};">
+            {% if user.current_stage == 'IMMUNITY' %}
+            <div
+                style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 10; display: flex; align-items: center; justify-content: center; border-radius: inherit; pointer-events: none;">
+                <ion-icon name="lock-closed" style="font-size: 3rem; color: rgba(255,255,255,0.4);"></ion-icon>
+            </div>
+            {% elif user.current_stage == 'SICKLE_CELL' %}
+            <div style="position: absolute; top: 1rem; right: 1rem;">
+                <span class="badge badge-accent animate-pulse">Current</span>
+            </div>
+            {% endif %}
+            <div
+                style="width: 50px; height: 50px; background: rgba(236, 72, 153, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <ion-icon name="water-outline" style="font-size: 24px; color: var(--accent);"></ion-icon>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem;">Sickle Cell Prediction</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Genetic and clinical data
+                analysis to predict Sickle Cell Anemia risk levels.</p>
+            <a href="{{ url_for('main.sickle_cell') }}"
+                class="btn {{ 'btn-primary' if user.current_stage == 'SICKLE_CELL' else 'btn-outline' }}"
+                style="width: 100%; {{ 'background: var(--accent);' if user.current_stage == 'SICKLE_CELL' }}"
+                {{ 'disabled' if user.current_stage=='IMMUNITY' }}>
+                {{ 'Locked 🔒' if user.current_stage == 'IMMUNITY' else ('Completed ✓' if user.current_stage !=
+                'SICKLE_CELL' and user.current_stage != 'IMMUNITY' else 'Start Analysis →') }}
+            </a>
+        </div>
+
+        <!-- Card 3: LSD Risk -->
+        <div class="glass-panel hover-3d animate-scale-in stagger-4"
+            style="padding: 2rem; position: relative; opacity: {{ 1 if user.current_stage in ['LSD', 'COMPLETED'] else 0.5 }}; border-color: {{ '#10b981' if user.current_stage == 'LSD' else 'var(--glass-border)' }};">
+            {% if user.current_stage in ['IMMUNITY', 'SICKLE_CELL'] %}
+            <div
+                style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 10; display: flex; align-items: center; justify-content: center; border-radius: inherit; pointer-events: none;">
+                <ion-icon name="lock-closed" style="font-size: 3rem; color: rgba(255,255,255,0.4);"></ion-icon>
+            </div>
+            {% elif user.current_stage == 'LSD' %}
+            <div style="position: absolute; top: 1rem; right: 1rem;">
+                <span class="badge badge-success animate-pulse">Current</span>
+            </div>
+            {% endif %}
+            <div
+                style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                <ion-icon name="fitness-outline" style="font-size: 24px; color: #10b981;"></ion-icon>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem;">LSD Risk Analysis</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Evaluation of risk factors
+                associated with Lysosomal Storage Disorders.</p>
+            <a href="{{ url_for('main.lsd') }}"
+                class="btn {{ 'btn-primary' if user.current_stage == 'LSD' else 'btn-outline' }}"
+                style="width: 100%; {{ 'background: #10b981;' if user.current_stage == 'LSD' }}" {{ 'disabled' if
+                user.current_stage in ['IMMUNITY', 'SICKLE_CELL' ] }}>
+                {{ 'Locked 🔒' if user.current_stage in ['IMMUNITY', 'SICKLE_CELL'] else ('Completed ✓' if
+                user.current_stage == 'COMPLETED' else 'Start Analysis →') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Clinical Versatility Overview -->
+    <div class="glass-panel versatility-card animate-fade-in-up stagger-5" style="margin-top: 3rem;">
+        <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h2 style="font-size: 1.8rem; margin-bottom: 1rem; color: var(--primary);">Clinical Versatility Overview</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                    TriGen-AI excels by linking your **Immunity Status** with **Genetic Risk Profiles**. 
+                    A holistic view allows for more accurate clinical decision support and personalized patient care.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 12px; flex: 1; min-width: 140px;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--primary); font-weight: 700;">Logic Layer</span>
+                        <div style="font-weight: 600; margin-top: 0.25rem;">Integrated</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(236, 72, 153, 0.1); border-radius: 12px; flex: 1; min-width: 140px;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--accent); font-weight: 700;">AI Engine</span>
+                        <div style="font-weight: 600; margin-top: 0.25rem;">Gemini Pro</div>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; display: flex; justify-content: center; align-items: center; min-width: 250px;">
+                <div class="dna-container">
+                    <div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div>
+                    <div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div>
+                    <div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div><div class="dna-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function() {
+        const hour = new Date().getHours();
+        let greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 17) greeting = 'Good afternoon';
+        const el = document.getElementById('greeting-text');
+        if (el) el.textContent = greeting;
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;"
+        class="animate-fade-in-up">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Analysis History</h1>
+            <p style="color: var(--text-muted);">Your past medical assessments and trends</p>
+        </div>
+    </div>
+
+    <!-- Search / Filter Bar -->
+    <div class="glass-panel animate-fade-in-up stagger-1" style="padding: 1rem 1.5rem; margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div class="search-bar" style="flex: 1; min-width: 200px;">
+                <ion-icon name="search-outline"></ion-icon>
+                <input type="text" id="search-input" placeholder="Search by result, module..."
+                    oninput="filterRecords()">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-outline filter-btn active" data-filter="all" onclick="setFilter('all', this)"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem;">All</button>
+                <button class="btn btn-outline filter-btn" data-filter="IMMUNITY" onclick="setFilter('IMMUNITY', this)"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--primary);">Immunity</button>
+                <button class="btn btn-outline filter-btn" data-filter="SICKLE_CELL"
+                    onclick="setFilter('SICKLE_CELL', this)"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--accent);">Sickle Cell</button>
+                <button class="btn btn-outline filter-btn" data-filter="LSD" onclick="setFilter('LSD', this)"
+                    style="padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--success);">LSD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+        <!-- Score Trend Chart -->
+        <div class="glass-panel animate-fade-in-up stagger-2" style="padding: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <ion-icon name="analytics-outline" style="color: var(--primary);"></ion-icon> Immunity Score Trend
+            </h3>
+            <canvas id="scoreTrendChart" height="200"></canvas>
+        </div>
+
+        <!-- Module Distribution Chart -->
+        <div class="glass-panel animate-fade-in-up stagger-3" style="padding: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <ion-icon name="pie-chart-outline" style="color: var(--accent);"></ion-icon> Module Distribution
+            </h3>
+            <canvas id="moduleDistChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Confidence Summary -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="glass-panel card-glow animate-fade-in-up stagger-3"
+            style="padding: 1.5rem; text-align: center; border-left: 3px solid var(--primary);">
+            <ion-icon name="shield-checkmark-outline" style="font-size: 2rem; color: var(--primary);"></ion-icon>
+            <h4 style="margin: 0.5rem 0; color: var(--text-muted); font-size: 0.85rem;">Immunity Tests</h4>
+            <p id="stat-immunity" class="counter-value"
+                style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</p>
+        </div>
+        <div class="glass-panel card-glow card-glow-accent animate-fade-in-up stagger-4"
+            style="padding: 1.5rem; text-align: center; border-left: 3px solid var(--accent);">
+            <ion-icon name="water-outline" style="font-size: 2rem; color: var(--accent);"></ion-icon>
+            <h4 style="margin: 0.5rem 0; color: var(--text-muted); font-size: 0.85rem;">Sickle Cell Tests</h4>
+            <p id="stat-sickle" class="counter-value" style="font-size: 2rem; font-weight: 700; color: var(--accent);">0
+            </p>
+        </div>
+        <div class="glass-panel card-glow card-glow-success animate-fade-in-up stagger-5"
+            style="padding: 1.5rem; text-align: center; border-left: 3px solid var(--success);">
+            <ion-icon name="fitness-outline" style="font-size: 2rem; color: var(--success);"></ion-icon>
+            <h4 style="margin: 0.5rem 0; color: var(--text-muted); font-size: 0.85rem;">LSD Tests</h4>
+            <p id="stat-lsd" class="counter-value" style="font-size: 2rem; font-weight: 700; color: var(--success);">0
+            </p>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="glass-panel animate-fade-in-up" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <ion-icon name="list-outline"></ion-icon> All Records
+        </h3>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Module</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+                <tbody id="records-body">
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                            <div class="loader" style="margin: 0 auto 0.5rem;"></div>
+                            Loading records...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let scoreTrendChart = null;
+    let moduleDistChart = null;
+    let allRecords = [];
+    let activeFilter = 'all';
+
+    // Animated counter
+    function animateCounter(element, target) {
+        const duration = 800;
+        const start = 0;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+            element.textContent = Math.round(start + (target - start) * eased);
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    function setFilter(filter, btn) {
+        activeFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'transparent';
+        });
+        btn.classList.add('active');
+        btn.style.background = 'rgba(79, 70, 229, 0.06)';
+        filterRecords();
+    }
+
+    function filterRecords() {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const filtered = allRecords.filter(r => {
+            const matchesFilter = activeFilter === 'all' || r.module === activeFilter;
+            const matchesSearch = !search || JSON.stringify(r).toLowerCase().includes(search);
+            return matchesFilter && matchesSearch;
+        });
+        renderTable(filtered);
+    }
+
+    function renderTable(records) {
+        const tbody = document.getElementById('records-body');
+        if (records.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5">
+                <div class="empty-state">
+                    <ion-icon name="document-outline"></ion-icon>
+                    <h3>No Records Found</h3>
+                    <p>Complete an assessment to see your history here.</p>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = records.map((r, i) => {
+            let result = '--';
+            let confidence = '--';
+            const moduleColors = { 'IMMUNITY': 'var(--primary)', 'SICKLE_CELL': 'var(--accent)', 'LSD': 'var(--success)' };
+
+            if (r.module === 'IMMUNITY' && r.details) {
+                result = `${r.details.class || ''} (${r.details.score || 0}/100)`;
+                confidence = `${r.details.confidence || 0}%`;
+            } else if (r.module === 'SICKLE_CELL' && r.details) {
+                result = r.details.prediction || '--';
+                confidence = `${r.details.confidence || 0}%`;
+            } else if (r.module === 'LSD' && r.details) {
+                result = `${r.details.risk || '--'} Risk`;
+                confidence = `${r.details.confidence || 0}%`;
+            }
+
+            const moduleName = r.module.replace('_', ' ');
+            return `<tr style="animation: fadeIn 0.3s ease-out ${i * 0.05}s both;">
+                <td>${i + 1}</td>
+                <td>${r.date}</td>
+                <td><span class="badge" style="background: ${moduleColors[r.module]}15; color: ${moduleColors[r.module]};">${moduleName}</span></td>
+                <td style="font-weight: 500;">${result}</td>
+                <td>${confidence}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function loadHistory() {
+        try {
+            const response = await fetch('/api/user/history');
+            const data = await response.json();
+
+            if (!data.success || !data.records || data.records.length === 0) {
+                document.getElementById('records-body').innerHTML = `<tr><td colspan="5">
+                    <div class="empty-state">
+                        <ion-icon name="flask-outline"></ion-icon>
+                        <h3>No Analysis Records Yet</h3>
+                        <p>Complete an assessment to see your history and trends here.</p>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            allRecords = data.records;
+
+            // Stats with animated counters
+            const immCount = allRecords.filter(r => r.module === 'IMMUNITY').length;
+            const sickleCount = allRecords.filter(r => r.module === 'SICKLE_CELL').length;
+            const lsdCount = allRecords.filter(r => r.module === 'LSD').length;
+
+            animateCounter(document.getElementById('stat-immunity'), immCount);
+            animateCounter(document.getElementById('stat-sickle'), sickleCount);
+            animateCounter(document.getElementById('stat-lsd'), lsdCount);
+
+            // Render table
+            renderTable(allRecords);
+
+            // Score Trend Chart
+            const immunityRecords = allRecords.filter(r => r.module === 'IMMUNITY' && r.details && r.details.score).reverse();
+            if (immunityRecords.length > 0) {
+                const ctx = document.getElementById('scoreTrendChart').getContext('2d');
+                if (scoreTrendChart) scoreTrendChart.destroy();
+                scoreTrendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: immunityRecords.map(r => r.date.split(' ')[0]),
+                        datasets: [{
+                            label: 'Immunity Score',
+                            data: immunityRecords.map(r => r.details.score),
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#6366f1',
+                            pointBorderColor: '#fff',
+                            pointRadius: 5,
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: 'var(--text-muted)' } },
+                            x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: 'var(--text-muted)' } }
+                        },
+                        plugins: { legend: { labels: { color: 'var(--text-main)' } } }
+                    }
+                });
+            }
+
+            // Module Distribution Chart
+            const distCtx = document.getElementById('moduleDistChart').getContext('2d');
+            if (moduleDistChart) moduleDistChart.destroy();
+            moduleDistChart = new Chart(distCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Immunity', 'Sickle Cell', 'LSD'],
+                    datasets: [{
+                        data: [immCount, sickleCount, lsdCount],
+                        backgroundColor: ['#6366f1', '#ec4899', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: 'var(--text-main)', padding: 15 } }
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error('Failed to load history:', e);
+            document.getElementById('records-body').innerHTML = `<tr><td colspan="5">
+                <div class="empty-state">
+                    <ion-icon name="alert-circle-outline" style="color: var(--danger);"></ion-icon>
+                    <h3>Failed to Load Records</h3>
+                    <p>Please try refreshing the page.</p>
+                </div>
+            </td></tr>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+{% endblock %}

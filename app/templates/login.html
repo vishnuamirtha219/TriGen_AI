@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Floating Particles -->
+<div class="particles-container" id="particles"></div>
+
+<div
+    style="display: flex; align-items: center; justify-content: center; min-height: 80vh; position: relative; z-index: 1;">
+    <div class="glass-panel animate-scale-in" style="width: 100%; max-width: 450px; padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="margin-bottom: 1rem;">
+                <ion-icon name="pulse-outline" style="font-size: 2.5rem; color: var(--primary);"></ion-icon>
+            </div>
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Welcome Back</h1>
+            <p style="color: var(--text-muted);">Sign in to your intelligence portal</p>
+        </div>
+
+        <!-- Role Selection Tabs -->
+        <div class="login-tabs"
+            style="display: flex; margin-bottom: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border);">
+            <button type="button" id="tab-user" class="login-tab active" onclick="switchLoginTab('user')"
+                style="flex: 1; padding: 0.85rem; background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <ion-icon name="person-outline"></ion-icon>
+                User Login
+            </button>
+            <button type="button" id="tab-admin" class="login-tab" onclick="switchLoginTab('admin')"
+                style="flex: 1; padding: 0.85rem; background: transparent; color: var(--text-muted); border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                Admin Login
+            </button>
+        </div>
+
+        <!-- Login Form -->
+        <form action="{{ url_for('auth.login') }}" method="POST" id="login-form">
+            <input type="hidden" name="login_type" id="login-type" value="user">
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Enter your username" required
+                    autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="login-btn" style="width: 100%; margin-top: 0.5rem;">
+                Log In <ion-icon name="arrow-forward-outline"></ion-icon>
+            </button>
+        </form>
+
+        <!-- Admin Info Badge -->
+        <div id="admin-info"
+            style="display: none; margin-top: 1.5rem; padding: 1rem; background: rgba(236, 72, 153, 0.08); border: 1px solid rgba(236, 72, 153, 0.2); border-radius: 8px;">
+            <p
+                style="font-size: 0.85rem; color: #ec4899; margin: 0; display: flex; align-items: flex-start; gap: 0.5rem;">
+                <ion-icon name="information-circle-outline" style="flex-shrink: 0; margin-top: 2px;"></ion-icon>
+                Admin portal provides access to analytics, user management, and system monitoring.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem;">
+            <p style="color: var(--text-muted);">Don't have an account? <a href="{{ url_for('auth.register') }}"
+                    style="color: var(--primary); font-weight: 500;">Register here</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-tab {
+        position: relative;
+    }
+
+    .login-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: currentColor;
+    }
+
+    .login-tab:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .admin-mode .login-tab#tab-admin {
+        background: linear-gradient(135deg, #ec4899, #be185d) !important;
+        color: white !important;
+    }
+
+    .admin-mode .login-tab#tab-user {
+        background: transparent !important;
+        color: var(--text-muted) !important;
+    }
+
+    .admin-mode #login-btn {
+        background: linear-gradient(135deg, #ec4899, #be185d) !important;
+    }
+
+    .admin-mode .glass-panel {
+        border-color: rgba(236, 72, 153, 0.3) !important;
+    }
+</style>
+
+<script>
+    // Generate floating particles
+    (function () {
+        const container = document.getElementById('particles');
+        if (!container) return;
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = (Math.random() * 4 + 2) + 'px';
+            particle.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            particle.style.animationDelay = (Math.random() * 10) + 's';
+            particle.style.background = `rgba(${Math.random() > 0.5 ? '99, 102, 241' : '236, 72, 153'}, ${Math.random() * 0.3 + 0.1})`;
+            container.appendChild(particle);
+        }
+    })();
+
+    function switchLoginTab(type) {
+        const panel = document.querySelector('.glass-panel');
+        const tabUser = document.getElementById('tab-user');
+        const tabAdmin = document.getElementById('tab-admin');
+        const adminInfo = document.getElementById('admin-info');
+        const loginType = document.getElementById('login-type');
+
+        if (type === 'admin') {
+            panel.classList.add('admin-mode');
+            tabUser.classList.remove('active');
+            tabAdmin.classList.add('active');
+            tabUser.style.background = 'transparent';
+            tabUser.style.color = 'var(--text-muted)';
+            tabAdmin.style.background = 'linear-gradient(135deg, #ec4899, #be185d)';
+            tabAdmin.style.color = 'white';
+            adminInfo.style.display = 'block';
+            loginType.value = 'admin';
+        } else {
+            panel.classList.remove('admin-mode');
+            tabAdmin.classList.remove('active');
+            tabUser.classList.add('active');
+            tabAdmin.style.background = 'transparent';
+            tabAdmin.style.color = 'var(--text-muted)';
+            tabUser.style.background = 'var(--primary)';
+            tabUser.style.color = 'white';
+            adminInfo.style.display = 'none';
+            loginType.value = 'user';
+        }
+    }
+</script>
+{% endblock %}

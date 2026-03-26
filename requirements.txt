@@ -1,0 +1,16 @@
+flask
+flask-sqlalchemy
+flask-migrate
+flask-cors
+psycopg2-binary
+pandas
+numpy
+scikit-learn
+xgboost
+python-dotenv
+pywebview
+reportlab
+biopython
+pypdf
+google-generativeai
+joblib
